@@ -1,11 +1,31 @@
 import pandas as pd
+import argparse
 import numpy as np
 import sys
+
+def parse_arguments() -> tuple:
+    try:
+        parser = argparse.ArgumentParser(
+            prog="splitDataset.py",
+            description="A program designed to display a csv dataset."
+        )
+
+        parser.add_argument(dest='file', type=str, help="path to the dataset.", default="./data.csv")
+        parser.add_argument('--ratio', '-r', dest='ratio', type=int, help='ratio in percent of the training dataset.', nargs='?', default=50)
+        args = parser.parse_args()
+
+        if (args.ratio >= 100 or args.ratio <= 0):
+            print("The ratio must be beetwin 0 and 100 strictly")
+            exit()
+        return(args.file, args.ratio)
+    except Exception as e:
+        print("Error parsing arguments: ", e)
+        exit()
 
 def load_csv(name):
 
     try:
-        df =  pd.read_csv(name)
+        df =  pd.read_csv(name, header=None)
     except:
         print("Error loading csv")
         return None
@@ -13,5 +33,15 @@ def load_csv(name):
     return df
 
 if __name__ == '__main__':
+
+    (dataset_path, ratio) = parse_arguments()
     
-    df =load_csv(sys.argv[1])
+    df = load_csv(dataset_path)
+
+    print("Splitting", dataset_path, "with ratio", ratio)
+
+    elements = int(df.shape[0] * ratio / 100)
+    df[0:elements].to_csv('data_train.csv', index=False, header=None)
+    print("data_train.csv of size", df[0:elements].shape[0], "generated.")
+    df[elements:].to_csv('data_test.csv', index=False, header=None)
+    print("data_test.csv of size", df[elements:].shape[0], "generated.")
