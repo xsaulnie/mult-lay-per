@@ -13,9 +13,11 @@ if __name__ == "__main__":
         layers.DenseLayer(2, activation='softmax', weights_initializer= "heUniform")
     ])
 
-    res = mynetwork.predict(np.array([[5], [6], [7], [10]]))
-    print(res)
-    print(np.sum(res))
+    res = mynetwork.predict(np.array([[5, 6, 7, 10], [1, 2, 3, 4]]))
+    want = np.array([[0, 1], [1, 0]])
+    print("predictions", res)
+    print("lossmse", mynetwork.lossmse(res, want))
+    print("lossbce", mynetwork.lossbce(res, want))
 
     # print("nb layers", mynetwork.nb_layers)
     # print("weight matrices", mynetwork.weight_matrices[0])
