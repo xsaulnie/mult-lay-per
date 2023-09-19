@@ -3,6 +3,7 @@ from math import log
 from numpy.random import randn
 import numpy as np
 from utils import *
+from tqdm import tqdm
 
 class model():
     def __init__(self, nb_layers , weight_matrices, Layers):
@@ -35,7 +36,7 @@ class model():
             return None
         res = []
         for i in range(input_data.shape[0]):
-            print("len", len(input_data[i]))
+            #print("len", len(input_data[i]))
             if len(input_data[i]) != self.Layers[0].nb_neurons:
                 print("model:predict wrong dimensions")
                 return None
@@ -43,7 +44,7 @@ class model():
             pred = model.__activation(input_data[i], self.Layers[0].activation)
             for idx in range(self.nb_layers - 1):
                 pred = np.matmul(self.weight_matrices[idx], pred) + self.Layers[idx].bias
-                print(self.Layers[idx + 1].activation)
+                #print(self.Layers[idx + 1].activation)
                 pred = model.__activation(pred, self.Layers[idx + 1].activation)
             res.append(pred)
         return np.array(res)
@@ -71,5 +72,13 @@ class model():
         return (- ret / 2 * y.shape[0])
 
     def fit(self, network, data_train, data_valid, loss='binaryCrossentropy', learning_rate=0.0314, batch_size=8, epochs=84):
-        
+        for steps in range(epochs):
+            Y_hat = self.predict(data_train)
+            loss = self.lossbce(Y_hat, np.array([[0, 1], [1, 0]]))
+            val_los = self.lossbce(self.predict(data_valid), np.array([[0, 1], [1, 0]]))
+            print("epoch {}/{} - loss: {} - val_los : {}".format(steps, epochs, loss, val_los))
+            for upd in range(self.nb_layers - 1):
+                (x, y) = (self.weight_matrices[upd].shape[0], self.weight_matrices[upd].shape[1])
+                self.weight_matrices[upd] = sqrt(2.0 / x) * np.random.randn(x, y)
+
 
