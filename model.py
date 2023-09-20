@@ -92,11 +92,30 @@ class model():
 
 
     def fit(self, network, data_train, data_valid, truth, loss='binaryCrossentropy', learning_rate=0.0314, batch_size=8, epochs=84):
+        if (truth.shape[0] != data_train.shape[0]):
+            print("model:fit Dimension error")
+
         for steps in range(epochs):
 
-
+            weightL = self.weight_matrices[self.nb_layers - 2]
+            grad_last = np.zeros(weightL.shape)
             for i in range(data_train.shape[0]):
-                print(self.__forwarding(data_train[i]))
+                
+                neurons = self.__forwarding(data_train[i])
+                neuronsL = neurons[self.nb_layers - 1]
+                diff = np.array(neuronsL - truth[i]).reshape(1, -1)
+
+                neuronsL1 = np.array(neurons[self.nb_layers - 2]).reshape(-1, 1)
+                grad = np.matmul(neuronsL1, diff).transpose()
+                # print("1", diff)
+                # print("2", neuronsL1)
+                # print("3", grad)
+                grad_last = grad_last + grad
+                #print("grad", grad_last)
+            grad_last = grad_last / data_train.shape[0]
+            #print("end", grad_last)
+
+            self.weight_matrices[self.nb_layers - 2] = weightL - (learning_rate * grad_last)
             Y_hat = self.predict(data_train)
             Y_vhat = self.predict(data_valid)
 
@@ -109,8 +128,8 @@ class model():
             #     self.weight_matrices[upd] = sqrt(2.0 / x) * np.random.randn(x, y)
 
             #for k in range(last_layer.shape[0]):
-            weightL = self.weight_matrices[self.nb_layers - 2]
-            last_layer = self.Layers[self.nb_layers - 1]
+
+
             #print(last_layer.values[0], last_layer.values[1])
                 
 
