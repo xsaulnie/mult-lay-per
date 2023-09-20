@@ -12,11 +12,13 @@ if __name__ == "__main__":
         layers.DenseLayer(3, activation='sigmoid', weights_initializer="heUniform"),
         layers.DenseLayer(2, activation='softmax', weights_initializer= "heUniform")
     ])
-    X_train = np.array([[5, 6, 7, 10], [1, 2, 3, 4]])
-    X_test = np.array([[4, 12, 7, 2], [8, 3, 1, 6]])
+    X_train = np.array([[18, 20, 7, 3], [15, 12, 2, 6]])
+    X_test = np.array([[4, 7, 16, 14], [3, 6, 19, 18]])
     res = mynetwork.predict(X_train)
     want = np.array([[0, 1], [1, 0]])
-    mynetwork.fit(mynetwork, X_train, X_test)
+
+    mynetwork.fit(mynetwork, X_train, X_test, want)
+
     # print("predictions", res)
     # print("lossmse", mynetwork.lossmse(res, want))
     # print("lossbce", mynetwork.lossbce(res, want))
