@@ -22,9 +22,18 @@ class model():
 
         return (model(len(listLayers), weight_matrices, bias, listLayers))
 
+    def __create_minigrad(self):
+        grad_weight = []
+        grad_bias = []
+        for idx in range(self.nb_layers - 1):
+            grad_weight.append(np.zeros((self.Layers[idx + 1].nb_neurons, self.Layers[idx].nb_neurons)))
+            grad_bias.append(np.zeros(self.Layers[idx+1].nb_neurons))
+        return (grad_weight, grad_bias)
+
     def __initialize_weight(nb_input, nb_output, weights_initializer):
         np.random.seed(42)
         if weights_initializer == "heUniform":
+
             return sqrt(2.0 / nb_input) * np.random.randn(nb_input, nb_output)
         return res
 
@@ -33,7 +42,13 @@ class model():
             vfunc = np.vectorize(sigmoid)
         if activation_type == 'softmax':
             return softmax(array)
+        if activation_type == 'relu':
+            return relu(array)
         return vfunc(array)
+
+    def __derivative(array, function_type):
+        if function_type == 'relu':
+            return np.array([1 if i > 0 else 0 for i in array])
 
     def predict(self, input_data):
         if (not isinstance(input_data, np.ndarray)):
@@ -44,15 +59,11 @@ class model():
             return None
         res = []
         for i in range(input_data.shape[0]):
-            #print("len", len(input_data[i]))
             
             pred = model.__activation(input_data[i], self.Layers[0].activation)
-            #self.Layers[0].values = pred
             for idx in range(self.nb_layers - 1):
                 pred = np.matmul(self.weight_matrices[idx], pred) + self.bias[idx]
-                #print(self.Layers[idx + 1].activation)
                 pred = model.__activation(pred, self.Layers[idx + 1].activation)
-                #self.Layers[idx].values = pred
             res.append(pred)
         return np.array(res)
 
@@ -94,37 +105,55 @@ class model():
             ret = ret + (y[idx][1] * math.log(y_hat[idx][1] + 1e-15) + (1 - y[idx][1])* math.log(1 - y_hat[idx][1] + 1e-15))
         return (- ret / 2 * y.shape[0])
 
-
-
     def fit(self, network, data_train, data_valid, truth, loss='binaryCrossentropy', learning_rate=0.0314, batch_size=8, epochs=84):
         if (truth.shape[0] != data_train.shape[0]):
             print("model:fit Dimension error")
 
+
         for steps in range(epochs):
-
-            weightL = self.weight_matrices[self.nb_layers - 2]
-            biasm = np.zeros(self.bias[self.nb_layers - 2].shape)
-            grad_last = np.zeros(weightL.shape)
+            (minigradw, minigradb) = self.__create_minigrad()
             for i in range(data_train.shape[0]):
-                
                 neurons = self.__forwarding(data_train[i])
-                neuronsL = neurons[self.nb_layers - 1]
-                diff = np.array(neuronsL - truth[i])
-                biasm = biasm + diff
- 
-                diff = diff.reshape(1, -1)
-                neuronsL1 = np.array(neurons[self.nb_layers - 2]).reshape(-1, 1)
-                grad = np.matmul(neuronsL1, diff).transpose()
-                # print("1", diff)
-                # print("2", neuronsL1)
-                # print("3", grad)
-                grad_last = grad_last + grad
-                #print("grad", grad_last)
-            grad_last = grad_last / data_train.shape[0]
-            biasm = biasm / data_train.shape[0]
-            #print("end", grad_last)
+                for layerid in range(self.nb_layers - 2, -1, -1):
+                    #weightL = self.weight_matrices[layerid]
+                    #biasm = np.zeros(self.bias[layerid].shape)
+                    #grad_last = np.zeros(weightL.shape)
+                    #print("layerid", layerid)
+                    
+                    neuronsLast = neurons[self.nb_layers - 1]
+                    neuronsL = neurons[layerid + 1]
+                    if (layerid == self.nb_layers - 2):
+                        diff = np.array(neuronsLast - truth[i])
+                        #biasm = biasm + diff
+                    else:
+                        diff = np.array(neuronsL)
+                        #biasm = biasm + diff
+                    #if (layerid == self.nb_layers -2):
+                    #print("ok")
+                    minigradb[layerid] = minigradb[layerid] + diff
+    
+                    diff = diff.reshape(1, -1)
+                    neuronsL1 = np.array(neurons[layerid]).reshape(-1, 1)
+                    grad = np.matmul(neuronsL1, diff).transpose()
+                    #if (layerid == self.nb_layers - 2):
+                    #print("ok2")
+                    minigradw[layerid] = minigradw[layerid] + grad
+                    #print("hello", layerid)
+                    #grad_last = grad_last + grad
 
-            self.weight_matrices[self.nb_layers - 2] = weightL - (learning_rate * grad_last)
+            #grad_last = grad_last / data_train.shape[0]
+            #biasm = biasm / data_train.shape[0]
+
+            print('minigradb', minigradb)
+            print('minigradw', minigradw)
+
+            for idx in range(self.nb_layers - 1):
+                self.weight_matrices[idx] = self.weight_matrices[idx] - (learning_rate * (minigradw[idx] / data_train.shape[0]))
+            for idx in range(self.nb_layers - 1):
+                self.bias[idx] = self.bias[idx] - (learning_rate * (minigradb[idx] / data_train.shape[0]))
+            #print('result', self.weight_matrices)
+
+            #self.weight_matrices[self.nb_layers - 2] = weightL - (learning_rate * grad_last)
             #self.bias[self.nb_layers - 2] = self.bias[self.nb_layers - 2] - (learning_rate * biasm)
             Y_hat = self.predict(data_train)
             Y_vhat = self.predict(data_valid)
