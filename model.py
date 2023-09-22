@@ -191,7 +191,7 @@ class model():
         listloss = np.array(listloss)
 
         plt.plot(x_epoch, listloss[:, 0], label='training loss')
-        plt.plot(x_epoch, listloss[:, 1], label='validation loss')
+        plt.plot(x_epoch, listloss[:, 1], '--', label='validation loss')
         plt.xlabel("epochs")
         plt.ylabel("loss")
         plt.legend()
