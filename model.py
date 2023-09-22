@@ -4,6 +4,7 @@ from numpy.random import randn
 import numpy as np
 from utils import *
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 class model():
     def __init__(self, nb_layers , weight_matrices, bias, Layers):
@@ -47,8 +48,11 @@ class model():
         return vfunc(array)
 
     def __derivative(array, function_type):
+        #print("derivate()", array, function_type)
         if function_type == 'relu':
             return np.array([1 if i > 0 else 0 for i in array])
+        if function_type == 'sigmoid':
+            return np.array([ i * (1 - i) for i in array])
 
     def predict(self, input_data):
         if (not isinstance(input_data, np.ndarray)):
@@ -84,6 +88,7 @@ class model():
         return res
 
     def lossmse(self, y_hat, y):
+
         if not isinstance(y_hat, np.ndarray) or not isinstance(y, np.ndarray):
             print("model.lossmse : bad argument")
             return None
@@ -93,11 +98,13 @@ class model():
         return ((sum((y_hat - y) * (y_hat - y)) / (2 * y.shape[0]))[0])
     
     def lossbce(self, y_hat, y):
+        #print("predicted", y_hat)
+        #print("truth", y)
         if not isinstance(y_hat, np.ndarray) or not isinstance(y, np.ndarray):
             print("model.lossbce : bad argument")
             return None
         if y_hat.shape[0] != y.shape[0]:
-            print("model.lossbce : bad argument")
+            print("model.lossbce : bad dimensions")
             return None
         ret = 0
         for idx in range(y.shape[0]):
@@ -105,11 +112,10 @@ class model():
             ret = ret + (y[idx][1] * math.log(y_hat[idx][1] + 1e-15) + (1 - y[idx][1])* math.log(1 - y_hat[idx][1] + 1e-15))
         return (- ret / 2 * y.shape[0])
 
-    def fit(self, network, data_train, data_valid, truth, loss='binaryCrossentropy', learning_rate=0.0314, batch_size=8, epochs=84):
+    def fit(self, network, data_train, data_valid, truth, truthv, loss='binaryCrossentropy', learning_rate=0.0314, batch_size=8, epochs=84):
         if (truth.shape[0] != data_train.shape[0]):
             print("model:fit Dimension error")
-
-
+        listloss = []
         for steps in range(epochs):
             (minigradw, minigradb) = self.__create_minigrad()
             for i in range(data_train.shape[0]):
@@ -124,9 +130,16 @@ class model():
                     neuronsL = neurons[layerid + 1]
                     if (layerid == self.nb_layers - 2):
                         diff = np.array(neuronsLast - truth[i])
+                        delta = diff
+                        #prev_var = np_array(neuronsLast - truth[i])
                         #biasm = biasm + diff
                     else:
-                        diff = np.array(neuronsL)
+                        diff = np.matmul(delta, self.weight_matrices[layerid + 1])
+                        #print("diff", diff)
+                        #print("derr", model.__derivative(neuronsL, self.Layers[layerid + 1].activation))
+                        diff = diff * model.__derivative(neuronsL, self.Layers[layerid + 1].activation)
+                        #print("res", diff)
+                        delta = diff
                         #biasm = biasm + diff
                     #if (layerid == self.nb_layers -2):
                     #print("ok")
@@ -144,8 +157,8 @@ class model():
             #grad_last = grad_last / data_train.shape[0]
             #biasm = biasm / data_train.shape[0]
 
-            print('minigradb', minigradb)
-            print('minigradw', minigradw)
+            #print('minigradb', minigradb)
+            #print('minigradw', minigradw)
 
             for idx in range(self.nb_layers - 1):
                 self.weight_matrices[idx] = self.weight_matrices[idx] - (learning_rate * (minigradw[idx] / data_train.shape[0]))
@@ -159,9 +172,13 @@ class model():
             Y_vhat = self.predict(data_valid)
 
             loss = self.lossbce(Y_hat, truth)
-            val_los = self.lossbce(Y_vhat, truth)
+            val_los = self.lossbce(Y_vhat, truthv)
+
+            listloss.append((loss, val_los))
+
 
             print("epoch {}/{} - loss: {} - val_los : {}".format(steps, epochs, loss, val_los))
+
             # for upd in range(self.nb_layers - 1):
             #     (x, y) = (self.weight_matrices[upd].shape[0], self.weight_matrices[upd].shape[1])
             #     self.weight_matrices[upd] = sqrt(2.0 / x) * np.random.randn(x, y)
@@ -170,6 +187,17 @@ class model():
 
 
             #print(last_layer.values[0], last_layer.values[1])
+        x_epoch = np.arange(0, epochs)
+        listloss = np.array(listloss)
+
+        plt.plot(x_epoch, listloss[:, 0], label='training loss')
+        plt.plot(x_epoch, listloss[:, 1], label='validation loss')
+        plt.xlabel("epochs")
+        plt.ylabel("loss")
+        plt.legend()
+        plt.show()
+
+        # plt.plot(x_epoch, listloss[:2])
                 
 
 
