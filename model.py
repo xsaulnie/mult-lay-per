@@ -110,16 +110,18 @@ class model():
         for idx in range(y.shape[0]):
             ret = ret + (y[idx][0] * math.log(y_hat[idx][0] + 1e-15) + (1 - y[idx][0])* math.log(1 - y_hat[idx][0] + 1e-15))
             ret = ret + (y[idx][1] * math.log(y_hat[idx][1] + 1e-15) + (1 - y[idx][1])* math.log(1 - y_hat[idx][1] + 1e-15))
-        return (- ret / 2 * y.shape[0])
+        return (- ret / (2 * y.shape[0]))
 
     def fit(self, network, data_train, data_valid, truth, truthv, loss='binaryCrossentropy', learning_rate=0.0314, batch_size=8, epochs=84):
         if (truth.shape[0] != data_train.shape[0]):
             print("model:fit Dimension error")
+        elem = 0
         listloss = []
         for steps in range(epochs):
             (minigradw, minigradb) = self.__create_minigrad()
-            for i in range(data_train.shape[0]):
-                neurons = self.__forwarding(data_train[i])
+            for i in range(batch_size):
+                #print("i", (elem + i) % data_train.shape[0])
+                neurons = self.__forwarding(data_train[(elem + i) % data_train.shape[0]])
                 for layerid in range(self.nb_layers - 2, -1, -1):
                     #weightL = self.weight_matrices[layerid]
                     #biasm = np.zeros(self.bias[layerid].shape)
@@ -129,7 +131,7 @@ class model():
                     neuronsLast = neurons[self.nb_layers - 1]
                     neuronsL = neurons[layerid + 1]
                     if (layerid == self.nb_layers - 2):
-                        diff = np.array(neuronsLast - truth[i])
+                        diff = np.array(neuronsLast - truth[(elem + i) % data_train.shape[0]])
                         delta = diff
                         #prev_var = np_array(neuronsLast - truth[i])
                         #biasm = biasm + diff
@@ -160,10 +162,12 @@ class model():
             #print('minigradb', minigradb)
             #print('minigradw', minigradw)
 
+            elem = elem + batch_size
+
             for idx in range(self.nb_layers - 1):
-                self.weight_matrices[idx] = self.weight_matrices[idx] - (learning_rate * (minigradw[idx] / data_train.shape[0]))
+                self.weight_matrices[idx] = self.weight_matrices[idx] - (learning_rate * (minigradw[idx] / batch_size))
             for idx in range(self.nb_layers - 1):
-                self.bias[idx] = self.bias[idx] - (learning_rate * (minigradb[idx] / data_train.shape[0]))
+                self.bias[idx] = self.bias[idx] - (learning_rate * (minigradb[idx] / batch_size))
             #print('result', self.weight_matrices)
 
             #self.weight_matrices[self.nb_layers - 2] = weightL - (learning_rate * grad_last)
