@@ -64,16 +64,16 @@ if __name__ == '__main__':
     X_train = normalize_data(X_train, X_train)
     X_test = normalize_data(X_test, X_train)
 
-    print (X_train)
 
 
     mynetwork = model.createNetwork([
         layers.DenseLayer(X_train.shape[1], activation='sigmoid'),
-        layers.DenseLayer(24, activation='sigmoid', weights_initializer="heUniform"),
-        layers.DenseLayer(2, activation='softmax', weights_initializer= "heUniform")
+        layers.DenseLayer(24, activation='sigmoid', weights_initializer="zero"),
+        layers.DenseLayer(24, activation='sigmoid', weights_initializer="zero"),
+        layers.DenseLayer(2, activation='softmax', weights_initializer= "zero")
     ])
 
-    mynetwork.fit(mynetwork, X_train, X_test, Y_train, Y_test, epochs=200, learning_rate=0.2, batch_size=20)
+    mynetwork.fit(mynetwork, X_train, X_test, Y_train, Y_test, epochs=10, learning_rate=0.1, batch_size=X_train.shape[0])
 
     pred_test = mynetwork.predict(X_test)
     truth = test.loc[:, 1].to_numpy()
@@ -81,10 +81,10 @@ if __name__ == '__main__':
     pred = [1 if i[0] > i[1] else 0 for i in pred_test]
     correct = 0
     for i in range(pred_test.shape[0]):
-        print("->({}, {}) - raw {}".format(truth[i], pred[i], pred_test[i]))
+        #print("->({}, {}) - raw {}".format(truth[i], pred[i], pred_test[i]))
         if (pred[i] == truth[i]):
             correct=correct + 1
-    print("Total result : ", correct / pred_test.shape[0] * 100, "%")
+    tested_ratio = correct / pred_test.shape[0] * 100
 
 
     pred_test = mynetwork.predict(X_train)
@@ -97,3 +97,4 @@ if __name__ == '__main__':
         if (pred[i] == truth[i]):
             correct=correct + 1
     print("Total result : ", correct / pred_test.shape[0] * 100, "%")
+    print(tested_ratio, "on tested data")

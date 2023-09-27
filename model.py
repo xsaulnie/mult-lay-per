@@ -18,8 +18,8 @@ class model():
         bias = []
 
         for idx in range (len(listLayers) - 1):
-           weight_matrices.append(model.__initialize_weight(listLayers[idx+1].nb_neurons, listLayers[idx].nb_neurons, listLayers[idx].weights_initializer))
-           bias.append(np.zeros(listLayers[idx+1].nb_neurons))
+            weight_matrices.append(model.__initialize_weight(listLayers[idx+1].nb_neurons, listLayers[idx].nb_neurons, listLayers[idx+1].weights_initializer))
+            bias.append(np.zeros(listLayers[idx+1].nb_neurons))
 
         return (model(len(listLayers), weight_matrices, bias, listLayers))
 
@@ -33,9 +33,11 @@ class model():
 
     def __initialize_weight(nb_input, nb_output, weights_initializer):
         np.random.seed(42)
+        print(weights_initializer)
         if weights_initializer == "heUniform":
-
             return sqrt(2.0 / nb_input) * np.random.randn(nb_input, nb_output)
+        if weights_initializer == "zero":
+            return np.ones((nb_input, nb_output))
         return res
 
     def __activation(array, activation_type):
@@ -115,19 +117,25 @@ class model():
     def fit(self, network, data_train, data_valid, truth, truthv, loss='binaryCrossentropy', learning_rate=0.0314, batch_size=8, epochs=84):
         if (truth.shape[0] != data_train.shape[0]):
             print("model:fit Dimension error")
+        print("Before training weights", self.weight_matrices)
+        print("Before training biais", self.bias)
         elem = 0
         listloss = []
         for steps in range(epochs):
             (minigradw, minigradb) = self.__create_minigrad()
+            #print("Minigrad weight ini", minigradw) working
+            #print("Minigrad bias ini", minigradb) working
+
             for i in range(batch_size):
                 #print("i", (elem + i) % data_train.shape[0])
                 neurons = self.__forwarding(data_train[(elem + i) % data_train.shape[0]])
+                #print("neurons", neurons)
                 for layerid in range(self.nb_layers - 2, -1, -1):
                     #weightL = self.weight_matrices[layerid]
                     #biasm = np.zeros(self.bias[layerid].shape)
                     #grad_last = np.zeros(weightL.shape)
                     #print("layerid", layerid)
-                    
+
                     neuronsLast = neurons[self.nb_layers - 1]
                     neuronsL = neurons[layerid + 1]
                     if (layerid == self.nb_layers - 2):
@@ -142,9 +150,12 @@ class model():
                         diff = diff * model.__derivative(neuronsL, self.Layers[layerid + 1].activation)
                         #print("res", diff)
                         delta = diff
+
                         #biasm = biasm + diff
                     #if (layerid == self.nb_layers -2):
                     #print("ok")
+                    #print("delta", delta)
+                    #print("diff", diff)
                     minigradb[layerid] = minigradb[layerid] + diff
     
                     diff = diff.reshape(1, -1)
@@ -169,6 +180,9 @@ class model():
             for idx in range(self.nb_layers - 1):
                 self.bias[idx] = self.bias[idx] - (learning_rate * (minigradb[idx] / batch_size))
             #print('result', self.weight_matrices)
+
+            print("wait", self.weight_matrices[0])
+            #print("biais", self.bias[0])
 
             #self.weight_matrices[self.nb_layers - 2] = weightL - (learning_rate * grad_last)
             #self.bias[self.nb_layers - 2] = self.bias[self.nb_layers - 2] - (learning_rate * biasm)
