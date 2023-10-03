@@ -50,8 +50,8 @@ def normalize_data(array, train):
 
 if __name__ == '__main__':
 
-    test = load_csv("data_test.csv")
-    train = load_csv("data_train.csv")
+    test = load_csv("data_train.csv")
+    train = load_csv("data_test.csv")
 
     X_train = train.loc[:, 2:].to_numpy()
     Y_train = train.loc[:, 1].to_numpy()
@@ -68,12 +68,12 @@ if __name__ == '__main__':
 
     mynetwork = model.createNetwork([
         layers.DenseLayer(X_train.shape[1], activation='sigmoid'),
-        layers.DenseLayer(24, activation='sigmoid', weights_initializer="zero"),
-        layers.DenseLayer(24, activation='sigmoid', weights_initializer="zero"),
-        layers.DenseLayer(2, activation='softmax', weights_initializer= "zero")
+        layers.DenseLayer(30, activation='sigmoid', weights_initializer="heUniform"),
+        layers.DenseLayer(24, activation='sigmoid', weights_initializer="heUniform"),
+        layers.DenseLayer(2, activation='softmax', weights_initializer= "heUniform")
     ])
 
-    mynetwork.fit(mynetwork, X_train, X_test, Y_train, Y_test, epochs=10, learning_rate=0.1, batch_size=X_train.shape[0])
+    mynetwork.fit(mynetwork, X_train, X_test, Y_train, Y_test, epochs=450, learning_rate=0.2, batch_size=X_train.shape[0])
 
     pred_test = mynetwork.predict(X_test)
     truth = test.loc[:, 1].to_numpy()

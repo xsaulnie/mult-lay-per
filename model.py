@@ -35,9 +35,10 @@ class model():
         np.random.seed(42)
         print(weights_initializer)
         if weights_initializer == "heUniform":
-            return sqrt(2.0 / nb_input) * np.random.randn(nb_input, nb_output)
+            res = sqrt(2.0 / nb_input) * np.random.randn(nb_input, nb_output)
         if weights_initializer == "zero":
-            return np.ones((nb_input, nb_output))
+            return np.full((nb_input, nb_output), 0.6)
+        #print("init", res)
         return res
 
     def __activation(array, activation_type):
@@ -50,7 +51,6 @@ class model():
         return vfunc(array)
 
     def __derivative(array, function_type):
-        #print("derivate()", array, function_type)
         if function_type == 'relu':
             return np.array([1 if i > 0 else 0 for i in array])
         if function_type == 'sigmoid':
@@ -73,14 +73,15 @@ class model():
             res.append(pred)
         return np.array(res)
 
-    def __forwarding(self, load):
+    def forwarding(self, load):
         res = []
         if not isinstance(load, np.ndarray):
             print("model:forwarding type error")
         if len(load) != self.Layers[0].nb_neurons:
             print("model:forwarding wrong dimensions")
             return None
-
+        #Waaaarning, must activate
+        #pred=load
         pred = model.__activation(load, self.Layers[0].activation)
         res.append(pred)
         for idx in range(self.nb_layers - 1):
@@ -111,14 +112,14 @@ class model():
         ret = 0
         for idx in range(y.shape[0]):
             ret = ret + (y[idx][0] * math.log(y_hat[idx][0] + 1e-15) + (1 - y[idx][0])* math.log(1 - y_hat[idx][0] + 1e-15))
-            ret = ret + (y[idx][1] * math.log(y_hat[idx][1] + 1e-15) + (1 - y[idx][1])* math.log(1 - y_hat[idx][1] + 1e-15))
+            #ret = ret + (y[idx][1] * math.log(y_hat[idx][1] + 1e-15) + (1 - y[idx][1])* math.log(1 - y_hat[idx][1] + 1e-15))
         return (- ret / (2 * y.shape[0]))
 
     def fit(self, network, data_train, data_valid, truth, truthv, loss='binaryCrossentropy', learning_rate=0.0314, batch_size=8, epochs=84):
         if (truth.shape[0] != data_train.shape[0]):
             print("model:fit Dimension error")
-        print("Before training weights", self.weight_matrices)
-        print("Before training biais", self.bias)
+        #print("Before training weights", self.weight_matrices)
+        #print("Before training biais", self.bias)
         elem = 0
         listloss = []
         for steps in range(epochs):
@@ -128,7 +129,7 @@ class model():
 
             for i in range(batch_size):
                 #print("i", (elem + i) % data_train.shape[0])
-                neurons = self.__forwarding(data_train[(elem + i) % data_train.shape[0]])
+                neurons = self.forwarding(data_train[(elem + i) % data_train.shape[0]])
                 #print("neurons", neurons)
                 for layerid in range(self.nb_layers - 2, -1, -1):
                     #weightL = self.weight_matrices[layerid]
@@ -139,17 +140,27 @@ class model():
                     neuronsLast = neurons[self.nb_layers - 1]
                     neuronsL = neurons[layerid + 1]
                     if (layerid == self.nb_layers - 2):
-                        diff = np.array(neuronsLast - truth[(elem + i) % data_train.shape[0]])
-                        delta = diff
-                        #prev_var = np_array(neuronsLast - truth[i])
-                        #biasm = biasm + diff
+                        if loss=='special':
+                            diff = neuronsLast * (1 - neuronsLast) * (truth[(elem + i) % data_train.shape[0]] - neuronsLast)
+                            ####print("last diff", diff)
+                            delta = diff
+                        else:
+                            diff = np.array(neuronsLast - truth[(elem + i) % data_train.shape[0]])
+                            #print("first diff", diff)
+                            delta = diff
+                            #prev_var = np_array(neuronsLast - truth[i])
+                            #biasm = biasm + diff
                     else:
+                        #print("pred diff", diff)
+                        #print("delta", delta)
+                        #print("mult", self.weight_matrices[layerid + 1])
                         diff = np.matmul(delta, self.weight_matrices[layerid + 1])
                         #print("diff", diff)
-                        #print("derr", model.__derivative(neuronsL, self.Layers[layerid + 1].activation))
+                        #print("multd", model.__derivative(neuronsL, self.Layers[layerid + 1].activation))
                         diff = diff * model.__derivative(neuronsL, self.Layers[layerid + 1].activation)
                         #print("res", diff)
                         delta = diff
+                        ####print("hiden diff", diff)
 
                         #biasm = biasm + diff
                     #if (layerid == self.nb_layers -2):
@@ -160,10 +171,15 @@ class model():
     
                     diff = diff.reshape(1, -1)
                     neuronsL1 = np.array(neurons[layerid]).reshape(-1, 1)
+                    ####print ("neuronsL1", neuronsL1)
+                    ####print("mdiff", diff)
                     grad = np.matmul(neuronsL1, diff).transpose()
+                    #print("grad", grad)
+                    ####print("grad", grad * learning_rate)
                     #if (layerid == self.nb_layers - 2):
                     #print("ok2")
                     minigradw[layerid] = minigradw[layerid] + grad
+
                     #print("hello", layerid)
                     #grad_last = grad_last + grad
 
@@ -179,9 +195,10 @@ class model():
                 self.weight_matrices[idx] = self.weight_matrices[idx] - (learning_rate * (minigradw[idx] / batch_size))
             for idx in range(self.nb_layers - 1):
                 self.bias[idx] = self.bias[idx] - (learning_rate * (minigradb[idx] / batch_size))
-            #print('result', self.weight_matrices)
+            ####print('resultw', self.weight_matrices)
+            ####print('resultb', self.bias)
 
-            print("wait", self.weight_matrices[0])
+            #print("wait", self.weight_matrices[0])
             #print("biais", self.bias[0])
 
             #self.weight_matrices[self.nb_layers - 2] = weightL - (learning_rate * grad_last)
@@ -216,6 +233,3 @@ class model():
         plt.show()
 
         # plt.plot(x_epoch, listloss[:2])
-                
-
-

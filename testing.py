@@ -31,7 +31,7 @@ if __name__ == "__main__":
     want = np.array([[1, 0], [0, 1], [1, 0], [0, 1]])
     wantv = np.array([[0, 1], [0, 1], [1, 0]])
 
-    mynetwork.fit(mynetwork, X_train, X_test, want, wantv, epochs=200, learning_rate=0.1, batch_size=4)
+    mynetwork.fit(mynetwork, X_train, X_test, want, wantv, epochs=10, learning_rate=0.1, batch_size=4)
 
     # pred = mynetwork.predict(X_train)
     # for i in range(pred.shape[0]):
