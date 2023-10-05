@@ -68,14 +68,17 @@ if __name__ == '__main__':
 
     mynetwork = model.createNetwork([
         layers.DenseLayer(X_train.shape[1], activation='sigmoid'),
-        layers.DenseLayer(30, activation='sigmoid', weights_initializer="heUniform"),
+        #layers.DenseLayer(32, activation='sigmoid', weights_initializer="heUniform"),
+        layers.DenseLayer(24, activation='sigmoid', weights_initializer="heUniform"),
         layers.DenseLayer(24, activation='sigmoid', weights_initializer="heUniform"),
         layers.DenseLayer(2, activation='softmax', weights_initializer= "heUniform")
     ])
 
-    mynetwork.fit(mynetwork, X_train, X_test, Y_train, Y_test, epochs=450, learning_rate=0.2, batch_size=X_train.shape[0])
+    mynetwork.fit(mynetwork, X_train, X_test, Y_train, Y_test, epochs=200, learning_rate=0.1, batch_size=X_train.shape[0])
 
     pred_test = mynetwork.predict(X_test)
+    print(pred_test)
+    exit(0)
     truth = test.loc[:, 1].to_numpy()
     truth = np.array([1 if i == 'M' else 0 for i in truth])
     pred = [1 if i[0] > i[1] else 0 for i in pred_test]
