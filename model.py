@@ -60,9 +60,7 @@ class model():
         if function_type == 'sigmoid':
             return np.array([ i * (1 - i) for i in array])
         if function_type == 'softmax':
-            print("array", array)
-            norm = np.sum(np.array([math.exp(i) for i in array]))
-            s = np.array([math.exp(i) / norm for i in array])
+            s = np.array([i * (1 - i) for i in array]) * 2
             return s 
 
     def predict(self, input_data):
@@ -137,7 +135,8 @@ class model():
 
             for i in range(batch_size):
                 #print("i", (elem + i) % data_train.shape[0])
-                neurons = self.forwarding(data_train[(elem + i) % data_train.shape[0]])
+                input_neuron =  data_train[(elem + i) % data_train.shape[0]]
+                neurons = self.forwarding(input_neuron)
                 print("neurons", neurons)
                 for layerid in range(self.nb_layers - 1, -1, -1):
                     print("Layerid", layerid)
@@ -160,21 +159,19 @@ class model():
                             y = truth[(elem + i) % data_train.shape[0]]
                             diff = np.array(neuronsLast - truth[(elem + i) % data_train.shape[0]])
                             diff = -(y / neuronsLast - (1 - y) / (1 - neuronsLast)) / 2 #?? / 2
-                            print("first diff", diff)
-                            print("derivate", model.__derivative(diff, "softmax"))
-                            delta = diff
+                            print("first diff", diff, neuronsLast)
+                            print("derivate", model.__derivative(neuronsLast, "softmax"))
+                            delta = model.__derivative(neuronsLast, "softmax") * diff
+                            print("delta", delta)
+                            delta = np.array([delta])
                             #prev_var = np_array(neuronsLast - truth[i])
                             #biasm = biasm + diff
                     else:
-                        #print("pred diff", diff)
+                        delta = np.matmul(delta, self.weight_matrices[layerid + 1])
                         #print("delta", delta)
-                        #print("mult", self.weight_matrices[layerid + 1])
-                        diff = np.matmul(delta, self.weight_matrices[layerid + 1])
-                        #print("diff", diff)
-                        #print("multd", model.__derivative(neuronsL, self.Layers[layerid + 1].activation))
-                        diff = diff * model.__derivative(neuronsL, self.Layers[layerid].activation)
-                        #print("res", diff)
-                        delta = diff
+                        delta = model.__derivative(neuronsL, self.Layers[layerid].activation) * delta
+                        print("delta", delta)
+
                         ####print("hiden diff", diff)
 
                         #biasm = biasm + diff
@@ -182,22 +179,17 @@ class model():
                     #print("ok")
                     #print("delta", delta)
                     #print("diff", diff)
-                    minigradb[layerid] = minigradb[layerid] + diff
-    
-                    diff = diff.reshape(1, -1)
+                    print("TEEEEEEEEEEST", minigradb[layerid])
+                    minigradb[layerid] = minigradb[layerid] + delta[0]
+                    print("minigradb", minigradb[layerid])
+                    print("NEUROOOOOONNNNN", delta)
                     if layerid == 0:
-                        neuronsL1 = np.array(neurons[0]).reshape(-1, 1)
-                    else:
-                        neuronsL1 = np.array(neurons[layerid - 1]).reshape(-1, 1)
-                    print ("neuronsL1", neuronsL1)
-                    ####print("mdiff", diff)
-                    grad = np.matmul(neuronsL1, diff).transpose()
-                    print("grad", grad)
-                    print("minigrad", minigradw[layerid])
-                    ####print("grad", grad * learning_rate)
-                    #if (layerid == self.nb_layers - 2):
-                    #print("ok2")
-                    minigradw[layerid] = minigradw[layerid] + grad
+                        neuronsL = input_neuron
+                    neuronsL = np.array([neuronsL]).reshape(-1, 1)
+                    minigradw[layerid] = minigradw[layerid] + np.matmul(neuronsL, delta).T
+                    print("minigradw", minigradw[layerid])
+                    
+
 
                     #print("hello", layerid)
                     #grad_last = grad_last + grad

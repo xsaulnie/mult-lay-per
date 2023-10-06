@@ -4,6 +4,7 @@ import numpy as np
 
 network = model.createNetwork([
     layers.DenseLayer(3, activation='sigmoid'),
+    layers.DenseLayer(3, activation='sigmoid'),
     layers.DenseLayer(2, activation='softmax')
 ])
 
