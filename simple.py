@@ -15,6 +15,7 @@ X_test = X_train
 Y_test = Y_train
 print("matrices", network.weight_matrices)
 print("bias", network.bias)
-network.fit(network, X_train, X_test, Y_train, Y_test, epochs=1, learning_rate=0.1, batch_size=1)
-print("matrices", network.weight_matrices)
+network.fit(network, X_train, X_test, Y_train, Y_test, epochs=2, learning_rate=0.1, batch_size=1)
+for i in range (3):
+    print("weigth", i, network.weight_matrices[i].T)
 print("bias", network.bias)
