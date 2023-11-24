@@ -50,48 +50,54 @@ def normalize_data(array, train):
 
 if __name__ == '__main__':
 
-    test = load_csv("data_train.csv")
-    train = load_csv("data_test.csv")
+    test = load_csv("data_test.csv")
+    train = load_csv("data_train.csv")
 
-    X_train = train.loc[:, 2:].to_numpy()
+    X_ref = train.loc[:, 2:].to_numpy()
     Y_train = train.loc[:, 1].to_numpy()
-    Y_train = np.array([[1, 0] if i=='M' else [0, 1] for i in Y_train])
+    Y_train = np.array([[1, 0] if i =='M' else [0, 1] for i in Y_train])
 
     X_test = test.loc[:, 2:].to_numpy()
     Y_test = test.loc[:, 1].to_numpy()
     Y_test = np.array([[1, 0] if i == 'M' else [0, 1] for i in Y_test])
 
-    X_train = normalize_data(X_train, X_train)
-    X_test = normalize_data(X_test, X_train)
+    X_train = normalize_data(X_ref, X_ref)
+    X_test = normalize_data(X_test, X_ref)
+
 
 
 
     mynetwork = model.createNetwork([
         layers.DenseLayer(X_train.shape[1], activation='sigmoid'),
-        #layers.DenseLayer(32, activation='sigmoid', weights_initializer="heUniform"),
         layers.DenseLayer(24, activation='sigmoid', weights_initializer="heUniform"),
         layers.DenseLayer(24, activation='sigmoid', weights_initializer="heUniform"),
         layers.DenseLayer(2, activation='softmax', weights_initializer= "heUniform")
     ])
 
-    mynetwork.fit(mynetwork, X_train, X_test, Y_train, Y_test, epochs=200, learning_rate=0.1, batch_size=X_train.shape[0])
+    mynetwork.fit(mynetwork, X_train, X_test, Y_train, Y_test, epochs=2000, learning_rate=0.7, batch_size=X_train.shape[0])
 
     pred_test = mynetwork.predict(X_test)
-    print(pred_test)
-    exit(0)
-    truth = test.loc[:, 1].to_numpy()
+    pred_train = mynetwork.predict(X_train)
+    # print(pred_test)
+    # for loop in range(pred_test.shape[0]):
+    #     if (pred_test[loop][0] > pred_test[loop][1]):
+    #         print("[1, 0] ->", Y_test[loop])
+    #     else:
+    #         print("[0, 1] ->", Y_test[loop])
+    
+    truth = train.loc[:, 1].to_numpy()
     truth = np.array([1 if i == 'M' else 0 for i in truth])
-    pred = [1 if i[0] > i[1] else 0 for i in pred_test]
+    pred = [1 if i[0] > i[1] else 0 for i in pred_train]
     correct = 0
-    for i in range(pred_test.shape[0]):
+    for i in range(pred_train.shape[0]):
         #print("->({}, {}) - raw {}".format(truth[i], pred[i], pred_test[i]))
         if (pred[i] == truth[i]):
-            correct=correct + 1
-    tested_ratio = correct / pred_test.shape[0] * 100
+            correct = correct + 1
+    train_ratio = correct / pred_train.shape[0] * 100
 
 
-    pred_test = mynetwork.predict(X_train)
-    truth = train.loc[:, 1].to_numpy()
+
+    truth = test.loc[:, 1].to_numpy()
     truth = np.array([1 if i == 'M' else 0 for i in truth])
     pred = [1 if i[0] > i[1] else 0 for i in pred_test]
     correct = 0
@@ -100,4 +106,4 @@ if __name__ == '__main__':
         if (pred[i] == truth[i]):
             correct=correct + 1
     print("Total result : ", correct / pred_test.shape[0] * 100, "%")
-    print(tested_ratio, "on tested data")
+    print(train_ratio, "on trained data")

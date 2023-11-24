@@ -2,6 +2,7 @@ import math
 import numpy as np
 
 def sigmoid(x):
+        #print("x", x)
         return 1 / (1 + math.exp(-x))
 
 def softmax(vec):

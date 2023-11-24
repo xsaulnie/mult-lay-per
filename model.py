@@ -36,7 +36,7 @@ class model():
         return (grad_weight, grad_bias)
 
     def __initialize_weight(nb_input, nb_output, weights_initializer):
-        #np.random.seed(42)
+        np.random.seed(42)
         print(weights_initializer)
         if weights_initializer == "heUniform":
             res = sqrt(2.0 / nb_input) * np.random.randn(nb_input, nb_output)
@@ -122,7 +122,7 @@ class model():
         return (- ret / (2 * y.shape[0]))
 
     def fit(self, network, data_train, data_valid, truth, truthv, loss='binaryCrossentropy', learning_rate=0.0314, batch_size=8, epochs=84):
-        if (truth.shape[0] != data_train.shape[0]):
+        if (truth.shape[0] != data_train.shape[0] or truthv.shape[0] != data_valid.shape[0]):
             print("model:fit Dimension error")
         #print("Before training weights", self.weight_matrices)
         #print("Before training biais", self.bias)
@@ -130,15 +130,14 @@ class model():
         listloss = []
         for steps in range(epochs):
             (minigradw, minigradb) = self.__create_minigrad()
-            print("Minigrad weight ini", minigradw)
-            print("comp", self.weight_matrices)
+            #print("Minigrad weight ini", minigradw)
+            #print("comp", self.weight_matrices)
             #print("Minigrad bias ini", minigradb) working
 
             for i in range(batch_size):
                 #print("i", (elem + i) % data_train.shape[0])
                 input_neuron =  data_train[(elem + i) % data_train.shape[0]]
                 neurons = self.forwarding(input_neuron)
-                #print("neurons", neurons)
                 for layerid in range(self.nb_layers - 1, -1, -1):
                     #print("Layerid", layerid)
                     #weightL = self.weight_matrices[layerid]
@@ -216,7 +215,7 @@ class model():
             for idx in range(self.nb_layers):
                 self.bias[idx] = self.bias[idx] - (learning_rate * (minigradb[idx] / batch_size))
 
-            print("weight", steps, self.weight_matrices)
+            #print("weight", steps, self.weight_matrices)
             ####print('resultw', self.weight_matrices)
             ####print('resultb', self.bias)
 
@@ -225,6 +224,7 @@ class model():
 
             #self.weight_matrices[self.nb_layers - 2] = weightL - (learning_rate * grad_last)
             #self.bias[self.nb_layers - 2] = self.bias[self.nb_layers - 2] - (learning_rate * biasm)
+            
             Y_hat = self.predict(data_train)
             Y_vhat = self.predict(data_valid)
             loss = self.lossbce(Y_hat, truth)
@@ -235,14 +235,7 @@ class model():
 
             print("epoch {}/{} - loss: {} - val_los : {}".format(steps, epochs, loss, val_los))
 
-            # for upd in range(self.nb_layers - 1):
-            #     (x, y) = (self.weight_matrices[upd].shape[0], self.weight_matrices[upd].shape[1])
-            #     self.weight_matrices[upd] = sqrt(2.0 / x) * np.random.randn(x, y)
 
-            #for k in range(last_layer.shape[0]):
-
-
-            #print(last_layer.values[0], last_layer.values[1])
         x_epoch = np.arange(0, epochs)
         listloss = np.array(listloss)
 
@@ -254,3 +247,14 @@ class model():
         plt.show()
 
         # plt.plot(x_epoch, listloss[:2])
+
+
+
+                    # for upd in range(self.nb_layers - 1):
+            #     (x, y) = (self.weight_matrices[upd].shape[0], self.weight_matrices[upd].shape[1])
+            #     self.weight_matrices[upd] = sqrt(2.0 / x) * np.random.randn(x, y)
+
+            #for k in range(last_layer.shape[0]):
+
+
+            #print(last_layer.values[0], last_layer.values[1])

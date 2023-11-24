@@ -7,7 +7,7 @@ def parse_arguments() -> tuple:
     try:
         parser = argparse.ArgumentParser(
             prog="splitDataset.py",
-            description="A program designed to display a csv dataset."
+            description="A program designed to split a csv dataset into a csv training dataset and a csv test dataset."
         )
 
         parser.add_argument(dest='file', type=str, help="path to the dataset.", default="./data.csv")
