@@ -128,6 +128,7 @@ class model():
         #print("Before training biais", self.bias)
         elem = 0
         listloss = []
+        (chargew, chargeb) = self.__create_minigrad()
         for steps in range(epochs):
             (minigradw, minigradb) = self.__create_minigrad()
             #print("Minigrad weight ini", minigradw)
@@ -211,9 +212,11 @@ class model():
             elem = elem + batch_size
 
             for idx in range(self.nb_layers):
-                self.weight_matrices[idx] = self.weight_matrices[idx] - (learning_rate * (minigradw[idx] / batch_size))
+                chargew[idx] = (0.5 * chargew[idx]) - (learning_rate * (minigradw[idx] / batch_size))
+                chargeb[idx] = (0.5 * chargeb[idx]) - (learning_rate * (minigradb[idx] / batch_size)) 
             for idx in range(self.nb_layers):
-                self.bias[idx] = self.bias[idx] - (learning_rate * (minigradb[idx] / batch_size))
+                self.weight_matrices[idx] = self.weight_matrices[idx] + chargew[idx]
+                self.bias[idx] = self.bias[idx] + chargeb[idx]
 
             #print("weight", steps, self.weight_matrices)
             ####print('resultw', self.weight_matrices)

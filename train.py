@@ -74,7 +74,7 @@ if __name__ == '__main__':
         layers.DenseLayer(2, activation='softmax', weights_initializer= "heUniform")
     ])
 
-    mynetwork.fit(mynetwork, X_train, X_test, Y_train, Y_test, epochs=2000, learning_rate=0.7, batch_size=X_train.shape[0])
+    mynetwork.fit(mynetwork, X_train, X_test, Y_train, Y_test, epochs=1000, learning_rate=0.7, batch_size=X_train.shape[0])
 
     pred_test = mynetwork.predict(X_test)
     pred_train = mynetwork.predict(X_train)
