@@ -64,9 +64,6 @@ if __name__ == '__main__':
     X_train = normalize_data(X_ref, X_ref)
     X_test = normalize_data(X_test, X_ref)
 
-
-
-
     mynetwork = model.createNetwork([
         layers.DenseLayer(X_train.shape[1], activation='sigmoid'),
         layers.DenseLayer(24, activation='sigmoid', weights_initializer="heUniform"),
@@ -74,7 +71,7 @@ if __name__ == '__main__':
         layers.DenseLayer(2, activation='softmax', weights_initializer= "heUniform")
     ])
 
-    mynetwork.fit(mynetwork, X_train, X_test, Y_train, Y_test, epochs=1000, learning_rate=0.7, batch_size=X_train.shape[0])
+    mynetwork.fit(mynetwork, X_train, X_test, Y_train, Y_test, epochs=100, learning_rate=0.7, batch_size=X_train.shape[0])
 
     pred_test = mynetwork.predict(X_test)
     pred_train = mynetwork.predict(X_train)

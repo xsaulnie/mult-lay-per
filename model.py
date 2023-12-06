@@ -5,6 +5,7 @@ import numpy as np
 from utils import *
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+from metrics import *
 
 class model():
     def __init__(self, nb_layers , weight_matrices, bias, Layers):
@@ -119,7 +120,7 @@ class model():
         for idx in range(y.shape[0]):
             ret = ret + (y[idx][0] * math.log(y_hat[idx][0] + 1e-15) + (1 - y[idx][0])* math.log(1 - y_hat[idx][0] + 1e-15))
             #ret = ret + (y[idx][1] * math.log(y_hat[idx][1] + 1e-15) + (1 - y[idx][1])* math.log(1 - y_hat[idx][1] + 1e-15))
-        return (- ret / (2 * y.shape[0]))
+        return (- ret / (y.shape[0]))
 
     def fit(self, network, data_train, data_valid, truth, truthv, loss='binaryCrossentropy', learning_rate=0.0314, batch_size=8, epochs=84):
         if (truth.shape[0] != data_train.shape[0] or truthv.shape[0] != data_valid.shape[0]):
@@ -233,10 +234,12 @@ class model():
             loss = self.lossbce(Y_hat, truth)
             val_los = self.lossbce(Y_vhat, truthv)
 
+            (prec, rec, f1) = getmetrics(truthv, Y_vhat) 
+
             listloss.append((loss, val_los))
 
 
-            print("epoch {}/{} - loss: {} - val_los : {}".format(steps, epochs, loss, val_los))
+            print("epoch {}/{} - loss: {} - val_los : {} precision : {}".format(steps, epochs, loss, val_los, prec))
 
 
         x_epoch = np.arange(0, epochs)
