@@ -5,12 +5,13 @@ import sys
 from model import model
 from layers import layers
 from utils import *
+import pickle
 
 def parse_arguments () -> tuple:
     try:
         parser = argparse.ArgumentParser(
             prog='train.py',
-            description="A program that permorf a training on data_train.csv with multilayer-perceptron"
+            description="A program that perform a training on data_train.csv with multilayer-perceptron"
 
         )
 
@@ -72,35 +73,11 @@ if __name__ == '__main__':
     ])
 
     mynetwork.fit(mynetwork, X_train, X_test, Y_train, Y_test, epochs=100, learning_rate=0.7, batch_size=X_train.shape[0])
+    print("> saving model './saved_model.npy' to disk...")
 
-    pred_test = mynetwork.predict(X_test)
-    pred_train = mynetwork.predict(X_train)
-    # print(pred_test)
-    # for loop in range(pred_test.shape[0]):
-    #     if (pred_test[loop][0] > pred_test[loop][1]):
-    #         print("[1, 0] ->", Y_test[loop])
-    #     else:
-    #         print("[0, 1] ->", Y_test[loop])
-    
-    truth = train.loc[:, 1].to_numpy()
-    truth = np.array([1 if i == 'M' else 0 for i in truth])
-    pred = [1 if i[0] > i[1] else 0 for i in pred_train]
-    correct = 0
-    for i in range(pred_train.shape[0]):
-        #print("->({}, {}) - raw {}".format(truth[i], pred[i], pred_test[i]))
-        if (pred[i] == truth[i]):
-            correct = correct + 1
-    train_ratio = correct / pred_train.shape[0] * 100
+    file = open('./saved_model.npy', 'wb')
+
+    pickle.dump(mynetwork, file)
+    exit(0)
 
 
-
-    truth = test.loc[:, 1].to_numpy()
-    truth = np.array([1 if i == 'M' else 0 for i in truth])
-    pred = [1 if i[0] > i[1] else 0 for i in pred_test]
-    correct = 0
-    for i in range(pred_test.shape[0]):
-        print("->({}, {}) - raw {}".format(truth[i], pred[i], pred_test[i]))
-        if (pred[i] == truth[i]):
-            correct=correct + 1
-    print("Total result : ", correct / pred_test.shape[0] * 100, "%")
-    print(train_ratio, "on trained data")

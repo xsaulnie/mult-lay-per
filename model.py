@@ -239,7 +239,7 @@ class model():
             listloss.append((loss, val_los))
 
 
-            print("epoch {}/{} - loss: {} - val_los : {} precision : {}".format(steps, epochs, loss, val_los, prec))
+            print("epoch {}/{} - loss: {} - val_los : {} - precision : {} - recall {} - f1_score {}".format(steps+1, epochs, loss, val_los, prec, rec, f1))
 
 
         x_epoch = np.arange(0, epochs)
