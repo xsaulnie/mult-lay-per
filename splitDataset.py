@@ -10,17 +10,17 @@ def parse_arguments() -> tuple:
             description="A program designed to split a csv dataset into a csv training dataset and a csv test dataset."
         )
 
-        parser.add_argument(dest='file', type=str, help="path to the dataset.", default="./data.csv")
+        parser.add_argument('--file', '-f', type=str, help="path to the dataset.", default="./data.csv")
         parser.add_argument('--ratio', '-r', dest='ratio', type=int, help='ratio in percent of the training dataset.', nargs='?', default=50)
         args = parser.parse_args()
 
         if (args.ratio >= 100 or args.ratio <= 0):
             print("The ratio must be beetwin 0 and 100 strictly")
-            exit()
+            exit(0)
         return(args.file, args.ratio)
     except Exception as e:
         print("Error parsing arguments: ", e)
-        exit()
+        exit(0)
 
 def load_csv(name):
 

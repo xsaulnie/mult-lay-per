@@ -1,7 +1,6 @@
 import pandas as pd
 import argparse
 import numpy as np
-import sys
 from model import model
 from layers import layers
 from utils import *
@@ -14,16 +13,18 @@ def parse_arguments () -> tuple:
             description="A program that perform a training on data_train.csv with multilayer-perceptron"
 
         )
-
-        parser.add_argument("--layer", nargs='+', help="number of neurons of the hidden layer", default=[24, 24, 24])
-        parser.add_argument("--epochs", type=int, help="number of iteration of the gradient descent algorythm", default=84)
-        parser.add_argument("--loss", type=str, help="Type of loss used to determine the error from the model to fit the data", default="binaryCrossentropy")
-        parser.add_argument("--batch-size", type=int, help="Number of elements from the dataset used to compute the gradient on each epochs", default=8)
-        parser.add_argument("--learning_rate", type=float, help="fraction of the gradient to update the model", default=0.0314)
+        parser.add_argument("--datasetrain",type=str, help="dataset for the training of the neural network", default='data_train.csv')
+        parser.add_argument("--datasetest", type=str, help="dataset for the testing of the trained neural network", default='data_test.csv')
+        parser.add_argument("-l", "--hidenlayer", nargs='+', help="number of neurons of the hidden layer", default=[24, 24])
+        parser.add_argument("-e", "--epochs", type=int, help="number of iteration of the gradient descent algorythm", default=100)
+        parser.add_argument("-b", "--batchsize", type=int, help="number of elements from the dataset used to compute the gradient on each epochs", default=0)
+        parser.add_argument("-r", "--learningrate", type=float, help="fraction of the gradient to update the model", default=0.7)
+        parser.add_argument("-m", "--momentum", type=float, help="hyperparameter of the nesterov momentum", default=0.5)
+        parser.add_argument("-s", "--stop", action='store_true', help='flag that set early stopping to prevent the overfitting')
         
         args = parser.parse_args()
 
-        return(args.layer, arg)
+        return(args.datasetrain, args.datasetest, args.hidenlayer, args.epochs, args.batchsize, args.learningrate, args.momentum, args.stop)
     except Exception as e:
         print("Error parsing arguments: ", e)
         exit()
@@ -51,8 +52,15 @@ def normalize_data(array, train):
 
 if __name__ == '__main__':
 
-    test = load_csv("data_test.csv")
-    train = load_csv("data_train.csv")
+    (datasetrain, datasetest, hidden_layer, epochs, batch_size, learning_rate, momentum, stop) = parse_arguments()
+    print(datasetrain, datasetest, hidden_layer, epochs, batch_size, learning_rate, momentum, stop)
+
+    test = load_csv(datasetest)
+    train = load_csv(datasetrain)
+
+    if (test is None or train is None):
+        print("Error reading datasets")
+        exit(1)
 
     X_ref = train.loc[:, 2:].to_numpy()
     Y_train = train.loc[:, 1].to_numpy()
@@ -65,14 +73,21 @@ if __name__ == '__main__':
     X_train = normalize_data(X_ref, X_ref)
     X_test = normalize_data(X_test, X_ref)
 
-    mynetwork = model.createNetwork([
-        layers.DenseLayer(X_train.shape[1], activation='sigmoid'),
-        layers.DenseLayer(24, activation='sigmoid', weights_initializer="heUniform"),
-        layers.DenseLayer(24, activation='sigmoid', weights_initializer="heUniform"),
-        layers.DenseLayer(2, activation='softmax', weights_initializer= "heUniform")
-    ])
+    listlayers = []
+    listlayers.append(layers.DenseLayer(X_train.shape[1], activation='sigmoid'))
+    for i in range(len(hidden_layer)):
+        listlayers.append(layers.DenseLayer(hidden_layer[i], activation='sigmoid', weights_initializer="heUniform"))
+    listlayers.append(layers.DenseLayer(2, activation='softmax', weights_initializer="heUniform"))
 
-    mynetwork.fit(mynetwork, X_train, X_test, Y_train, Y_test, epochs=100, learning_rate=0.7, batch_size=X_train.shape[0])
+    mynetwork = model.createNetwork(listlayers)
+
+    if batch_size == 0:
+        batch_size = X_train.shape[0]
+    if (batch_size > X_train.shape[0]):
+        print("Error batch_size too big, fitting impossible")
+        exit(1)
+
+    mynetwork.fit(mynetwork, X_train, X_test, Y_train, Y_test, epochs=epochs, learning_rate=learning_rate, batch_size=batch_size, momentum=momentum, stop=stop)
     print("> saving model './saved_model.npy' to disk...")
 
     file = open('./saved_model.npy', 'wb')

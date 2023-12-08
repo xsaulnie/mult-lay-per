@@ -43,12 +43,10 @@ class model():
             res = sqrt(2.0 / nb_input) * np.random.randn(nb_input, nb_output)
         if weights_initializer == "zero":
             return np.full((nb_input, nb_output), 0.6)
-        #print("init", res)
         return res
 
     def __activation(array, activation_type):
         if activation_type == 'sigmoid':
-            #print("arr", array)
             vfunc = np.vectorize(sigmoid)
         if activation_type == 'softmax':
             return softmax(array)
@@ -121,8 +119,8 @@ class model():
             ret = ret + (y[idx][0] * math.log(y_hat[idx][0] + 1e-15) + (1 - y[idx][0])* math.log(1 - y_hat[idx][0] + 1e-15))
             #ret = ret + (y[idx][1] * math.log(y_hat[idx][1] + 1e-15) + (1 - y[idx][1])* math.log(1 - y_hat[idx][1] + 1e-15))
         return (- ret / (y.shape[0]))
-
-    def fit(self, network, data_train, data_valid, truth, truthv, loss='binaryCrossentropy', learning_rate=0.0314, batch_size=8, epochs=84):
+    #default values
+    def fit(self, network, data_train, data_valid, truth, truthv, loss='binaryCrossentropy', learning_rate=0.0314, batch_size=8, epochs=84, momentum=0, stop=False):
         if (truth.shape[0] != data_train.shape[0] or truthv.shape[0] != data_valid.shape[0]):
             print("model:fit Dimension error")
         #print("Before training weights", self.weight_matrices)
@@ -213,8 +211,8 @@ class model():
             elem = elem + batch_size
 
             for idx in range(self.nb_layers):
-                chargew[idx] = (0.5 * chargew[idx]) - (learning_rate * (minigradw[idx] / batch_size))
-                chargeb[idx] = (0.5 * chargeb[idx]) - (learning_rate * (minigradb[idx] / batch_size)) 
+                chargew[idx] = (momentum * chargew[idx]) - (learning_rate * (minigradw[idx] / batch_size))
+                chargeb[idx] = (momentum * chargeb[idx]) - (learning_rate * (minigradb[idx] / batch_size)) 
             for idx in range(self.nb_layers):
                 self.weight_matrices[idx] = self.weight_matrices[idx] + chargew[idx]
                 self.bias[idx] = self.bias[idx] + chargeb[idx]
@@ -234,13 +232,20 @@ class model():
             loss = self.lossbce(Y_hat, truth)
             val_los = self.lossbce(Y_vhat, truthv)
 
-            (prec, rec, f1) = getmetrics(truthv, Y_vhat) 
+            (prec, rec, f1) = getmetrics(truthv, Y_vhat)
 
+
+            # if (steps > 10):
+            #     status = "OVERFITTING" if listloss[-1][1] < val_los else "NORMAL"
+            #     print("old", listloss[-1][1], "new", val_los, status)
+
+            if (stop is True and steps > 10 and steps > epochs / 10 and val_los > listloss[-1][1]):
+                print("Overfitting detected, early stopping at step {}/{}.".format(steps, epochs))
+                epochs = steps
+                break
             listloss.append((loss, val_los))
 
-
             print("epoch {}/{} - loss: {} - val_los : {} - precision : {} - recall {} - f1_score {}".format(steps+1, epochs, loss, val_los, prec, rec, f1))
-
 
         x_epoch = np.arange(0, epochs)
         listloss = np.array(listloss)
