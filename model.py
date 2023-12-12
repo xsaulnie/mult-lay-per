@@ -38,11 +38,10 @@ class model():
 
     def __initialize_weight(nb_input, nb_output, weights_initializer):
         np.random.seed(42)
-        print(weights_initializer)
         if weights_initializer == "heUniform":
             res = sqrt(2.0 / nb_input) * np.random.randn(nb_input, nb_output)
         if weights_initializer == "zero":
-            return np.full((nb_input, nb_output), 0.6)
+            return np.full((nb_input, nb_output), 0.0)
         return res
 
     def __activation(array, activation_type):
@@ -86,8 +85,6 @@ class model():
         if len(load) != self.Layers[0].nb_neurons:
             print("model:forwarding wrong dimensions")
             return None
-        #Waaaarning, must activate
-        #pred=load
         pred = load
         for idx in range(self.nb_layers):
             pred = np.matmul(self.weight_matrices[idx], pred) + self.bias[idx]
@@ -106,8 +103,6 @@ class model():
         return ((sum((y_hat - y) * (y_hat - y)) / (2 * y.shape[0]))[0])
     
     def lossbce(self, y_hat, y):
-        #print("predicted", y_hat)
-        #print("truth", y)
         if not isinstance(y_hat, np.ndarray) or not isinstance(y, np.ndarray):
             print("model.lossbce : bad argument")
             return None
@@ -117,9 +112,8 @@ class model():
         ret = 0
         for idx in range(y.shape[0]):
             ret = ret + (y[idx][0] * math.log(y_hat[idx][0] + 1e-15) + (1 - y[idx][0])* math.log(1 - y_hat[idx][0] + 1e-15))
-            #ret = ret + (y[idx][1] * math.log(y_hat[idx][1] + 1e-15) + (1 - y[idx][1])* math.log(1 - y_hat[idx][1] + 1e-15))
         return (- ret / (y.shape[0]))
-    #default values
+
     def fit(self, network, data_train, data_valid, truth, truthv, loss='binaryCrossentropy', learning_rate=0.0314, batch_size=8, epochs=84, momentum=0, stop=False):
         if (truth.shape[0] != data_train.shape[0] or truthv.shape[0] != data_valid.shape[0]):
             print("model:fit Dimension error")

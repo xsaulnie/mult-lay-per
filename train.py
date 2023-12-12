@@ -15,7 +15,7 @@ def parse_arguments () -> tuple:
         )
         parser.add_argument("--datasetrain",type=str, help="dataset for the training of the neural network", default='data_train.csv')
         parser.add_argument("--datasetest", type=str, help="dataset for the testing of the trained neural network", default='data_test.csv')
-        parser.add_argument("-l", "--hidenlayer", nargs='+', help="number of neurons of the hidden layer", default=[24, 24])
+        parser.add_argument("-l", "--hidenlayer", type=int, nargs='+', help="number of neurons of the hidden layer", default=[24, 24])
         parser.add_argument("-e", "--epochs", type=int, help="number of iteration of the gradient descent algorythm", default=100)
         parser.add_argument("-b", "--batchsize", type=int, help="number of elements from the dataset used to compute the gradient on each epochs", default=0)
         parser.add_argument("-r", "--learningrate", type=float, help="fraction of the gradient to update the model", default=0.7)
@@ -23,6 +23,24 @@ def parse_arguments () -> tuple:
         parser.add_argument("-s", "--stop", action='store_true', help='flag that set early stopping to prevent the overfitting')
         
         args = parser.parse_args()
+
+        if args.momentum > 1 or args.momentum < 0:
+            print("Momentum hyperparameter must be beetween 0 and 1")
+            exit(1)
+        if (len(args.hidenlayer) > 10):
+            print("Error Neural network too deep")
+            exit(1)
+        for i in args.hidenlayer:
+            if i > 100:
+                print("Error too many neurons on layer")
+                exit(1)
+        if args.batchsize < 0:
+            print("Error batch size must be positiv")
+            exit(1)
+        if args.learningrate < 0 or args.learningrate > 1:
+            print("Error learning rate must be beetweem 0 and 1")
+            exit(1)
+
 
         return(args.datasetrain, args.datasetest, args.hidenlayer, args.epochs, args.batchsize, args.learningrate, args.momentum, args.stop)
     except Exception as e:
@@ -59,10 +77,18 @@ if __name__ == '__main__':
     train = load_csv(datasetrain)
 
     if (test is None or train is None):
+        print("Error loading csv.")
+        exit(1)
+
+    if (test is None or train is None):
         print("Error reading datasets")
         exit(1)
 
     X_ref = train.loc[:, 2:].to_numpy()
+    if (batch_size > X_ref.shape[0]):
+        print("Error : batch size greater than number of elements in the training dataset")
+        exit(1)
+
     Y_train = train.loc[:, 1].to_numpy()
     Y_train = np.array([[1, 0] if i =='M' else [0, 1] for i in Y_train])
 
@@ -93,6 +119,7 @@ if __name__ == '__main__':
     file = open('./saved_model.npy', 'wb')
 
     pickle.dump(mynetwork, file)
+    file.close()
     exit(0)
 
 
