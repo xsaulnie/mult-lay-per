@@ -107,12 +107,28 @@ class model():
         if not isinstance(y_hat, np.ndarray) or not isinstance(y, np.ndarray):
             print("model.lossbce : bad argument")
             return None
+        if len(y_hat) != len(y):
+            print("model.lossbce : bad dimensions")
+            return None
+        ret = 0
+        for idx in range(len(y)):
+            ip = (y[idx] * math.log(y_hat[idx] + 1e-15) + (1 - y[idx])* math.log(1 - y_hat[idx] + 1e-15))
+            #print(y[idx], y_hat[idx], ip)
+            ret = ret + ip
+        return (- ret / (len(y)))
+
+    def lossobce(self, y_hat, y):
+        if not isinstance(y_hat, np.ndarray) or not isinstance(y, np.ndarray):
+            print("model.lossbce : bad argument")
+            return None
         if y_hat.shape[0] != y.shape[0]:
             print("model.lossbce : bad dimensions")
             return None
         ret = 0
         for idx in range(y.shape[0]):
-            ret = ret + (y[idx][0] * math.log(y_hat[idx][0] + 1e-15) + (1 - y[idx][0])* math.log(1 - y_hat[idx][0] + 1e-15))
+            ip = (y[idx][0] * math.log(y_hat[idx][0] + 1e-15) + (1 - y[idx][0])* math.log(1 - y_hat[idx][0] + 1e-15))
+            #print(y[idx][0], y_hat[idx][0], ip)
+            ret = ret + ip
         return (- ret / (y.shape[0]))
 
     def lossce(self, y_hat, y):
@@ -128,7 +144,7 @@ class model():
             ret = ret + np.sum(y[idx] * vlog(y_hat[idx]))
         return (-ret / (y.shape[0]))
 
-    def fit(self, network, data_train, data_valid, truth, truthv, loss='binaryCrossentropy', learning_rate=0.0314, batch_size=8, epochs=84, momentum=0, stop=False, histo=False):
+    def fit(self, network, data_train, data_valid, truth, truthv, loss='binaryCrossentropy', learning_rate=0.03, batch_size=8, epochs=100, momentum=0, stop=False, histo=False):
         if (truth.shape[0] != data_train.shape[0] or truthv.shape[0] != data_valid.shape[0]):
             print("model:fit Dimension error")
         elem = 0

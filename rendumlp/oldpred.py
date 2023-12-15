@@ -74,28 +74,23 @@ if __name__ == '__main__':
     X_test = normalize_data(X_test, X_ref)
     Y_test = test.loc[:, 1].to_numpy()
 
-    Y_test_simple = np.array([1 if i == 'M' else 0 for i in Y_test])
     Y_test = np.array([[1, 0] if i == 'M' else [0, 1] for i in Y_test])
+    print("Y_test", Y_test)
 
     pred_test = mynetwork.predict(X_test)
-    pred_test_simple = np.array([1 if p[0] > p[1] else 0 for p in pred_test])
-    pred_test_p = np.array([p[0] for p in pred_test])
 
     rounded = [[round(p[0], 3), round(p[1], 3)] for p in pred_test]
-
-    lossbce = mynetwork.lossbce(pred_test_p, Y_test_simple)
+    lossbce = mynetwork.lossbce(pred_test, Y_test)
     lossmse = mynetwork.lossmse(pred_test, Y_test)
-
     (prec, reca, f1) = getmetrics(Y_test, pred_test)
 
-    #truth = test.loc[:, 1].to_numpy()
-    #truth = np.array([1 if i == 'M' else 0 for i in truth])
-    #pred = [1 if p[0] > p[1] else 0 for p in pred_test]
+    truth = test.loc[:, 1].to_numpy()
+    truth = np.array([1 if i == 'M' else 0 for i in truth])
+    pred = [1 if p[0] > p[1] else 0 for p in pred_test]
     correct = 0
-    print("->(real, pred) - raw [p(1), p(0)]")
     for i in range(pred_test.shape[0]):
-        print("->({}, {}) - raw {}".format(Y_test_simple[i], pred_test_simple[i], rounded[i]))
-        if (Y_test_simple[i] == pred_test_simple[i]):
+        print("->({}, {}) - raw {}".format(truth[i], pred[i], rounded[i]))
+        if (pred[i] == truth[i]):
             correct=correct + 1
     print("> correctly predicted {}/{}".format(correct, pred_test.shape[0]))
     print("> performance :", correct / pred_test.shape[0] * 100, "%")
@@ -104,5 +99,4 @@ if __name__ == '__main__':
     print("> precision :", prec)
     print("> recall :", reca)
     print("> f1_score :", f1)
-
     exit(0)

@@ -18,7 +18,7 @@ def parse_arguments () -> tuple:
         parser.add_argument("-l", "--hidenlayer", type=int, nargs='+', help="number of neurons of the hidden layer", default=[24, 24])
         parser.add_argument("-e", "--epochs", type=int, help="number of iteration of the gradient descent algorythm", default=100)
         parser.add_argument("-b", "--batchsize", type=int, help="number of elements from the dataset used to compute the gradient on each epochs", default=0)
-        parser.add_argument("-r", "--learningrate", type=float, help="fraction of the gradient to update the model", default=0.7)
+        parser.add_argument("-r", "--learningrate", type=float, help="fraction of the gradient to update the model", default=0.5)
         parser.add_argument("-m", "--momentum", type=float, help="hyperparameter of the nesterov momentum", default=0.5)
         parser.add_argument("-s", "--stop", action='store_true', help='flag that set early stopping to prevent the overfitting')
         parser.add_argument("-d", "--history", action='store_true', help='display several learging curve on same graph using historic of trainings')

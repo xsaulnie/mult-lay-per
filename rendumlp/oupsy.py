@@ -5,7 +5,7 @@ if __name__ == "__main__":
 
     X_train = np.array([[3, 4, 5], [6, 7, 8]])
 
-    Y_train = np.array([[0., 1., 0.], [1., 0., 0.]])
+    Y_train = np.array([[0., 1.], [1., 0.]])
 
     mod = model.createNetwork([layers.DenseLayer(3, activation='sigmoid'),
     layers.DenseLayer(2, activation='sigmoid'),
